@@ -5,16 +5,16 @@ import android.graphics.Color
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.sokah.quizapp.databinding.ActivityQuizQuestionBinding
+import retrofit2.Retrofit
 
 class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var binding: ActivityQuizQuestionBinding
-
     private var mCurrentPosition: Int = 1
     private var correctAnswer :Int = 0
     private var mQuestionList: ArrayList<Question>? = null
@@ -22,12 +22,18 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
     private var checkOption = false
     private  var username:String?=null
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityQuizQuestionBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         mQuestionList = Constants.getQuestions()
-        setQuestion()
+
+        for (question in mQuestionList!!){
+
+            Log.e("correcto", question.correctAnswer)
+        }
+       // setQuestion()
         username= intent.getStringExtra(Constants.USER_NAME).toString()
         binding.btnSubmit.setOnClickListener(this)
         binding.optionOne.setOnClickListener(this)
@@ -43,11 +49,11 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         defaultOptionTextView()
         var currentQuestion: Question? = mQuestionList?.get(mCurrentPosition - 1)
         binding.tvQuestion.text = currentQuestion?.question
-        binding.optionOne.text = currentQuestion?.option1
-        binding.optionTwo.text = currentQuestion?.option2
-        binding.optionThree.text = currentQuestion?.option3
-        binding.optionFour.text = currentQuestion?.option4
-        binding.questionImage.setImageResource(currentQuestion!!.image)
+//        binding.optionOne.text = currentQuestion?.option1
+//        binding.optionTwo.text = currentQuestion?.option2
+//        binding.optionThree.text = currentQuestion?.option3
+//        binding.optionFour.text = currentQuestion?.option4
+        //binding.questionImage.setImageResource(currentQuestion!!.image)
         binding.progressBar.progress = mCurrentPosition
         binding.tvProgressBar.text = "$mCurrentPosition / ${mQuestionList?.size}"
 
@@ -142,32 +148,32 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
 
             }
         } else {
-
-            val question = mQuestionList?.get(mCurrentPosition - 1)
-
-            if (question!!.correctAnswer != mSelectedOption) {
-
-                answer(mSelectedOption, R.drawable.wrong_option_border)
-            }else{
-
-                correctAnswer++
-            }
-            answer(question.correctAnswer, R.drawable.correct_option_border)
-
-
-            //decide que valor darle al boton dependiendo si quedan respuestas
-            if(mCurrentPosition==mQuestionList?.size){
-
-                binding.btnSubmit.text ="Finish"
-
-            }
-
-            else{
-
-                binding.btnSubmit.text ="Next Question"
-            }
-
-            mSelectedOption=0;
+//
+//            val question = mQuestionList?.get(mCurrentPosition - 1)
+//
+//            if (question!!.correctAnswer != mSelectedOption) {
+//
+//                answer(mSelectedOption, R.drawable.wrong_option_border)
+//            }else{
+//
+//                correctAnswer++
+//            }
+//            answer(question.correctAnswer, R.drawable.correct_option_border)
+//
+//
+//            //decide que valor darle al boton dependiendo si quedan respuestas
+//            if(mCurrentPosition==mQuestionList?.size){
+//
+//                binding.btnSubmit.text ="Finish"
+//
+//            }
+//
+//            else{
+//
+//                binding.btnSubmit.text ="Next Question"
+//            }
+//
+//            mSelectedOption=0;
 
         }
     }

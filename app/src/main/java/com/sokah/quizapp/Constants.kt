@@ -1,28 +1,54 @@
 package com.sokah.quizapp
 
+import android.util.Log
+import com.sokah.quizapp.triviaapi.ApiService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
 object Constants {
 
     const val USER_NAME : String = "username"
     const val TOTAL_QUESTIONS : String = "total_questions"
     const val CORRECT_ANSWERS : String = "correctAnswer"
+    private var retrofit :Retrofit = Retrofit.Builder().baseUrl("https://trivia.willfry.co.uk/api/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+
     fun getQuestions():ArrayList<Question>{
 
-        val questionsList = ArrayList<Question>()
-        val q1 = Question(1,"what country does this flag belong to",R.drawable.argentina_flag,
-        "argentina","colombia","chile","peru",1)
+        var service = retrofit.create<ApiService>(ApiService::class.java)
+        var questionsList = ArrayList<Question>()
 
-        questionsList.add(q1)
+        service.getTrivia().enqueue(object : Callback<ArrayList<Question>>{
+            override fun onResponse(
+                call: Call<ArrayList<Question>>?,
+                response: Response<ArrayList<Question>>?
+            ) {
+                questionsList= response?.body() !!
 
-        val q2 = Question(2,"what country does this flag belong to",R.drawable.colombia_flag,
-            "colombia","argentina","chile","peru",1)
+                for (question in questionsList){
 
-        questionsList.add(q2)
+                    Log.e("TAG", question.question, )
+                }
+            }
 
-        val q3 = Question(3,"what country does this flag belong to",R.drawable.peru_flag,
-            "colombia","argentina","chile","peru",4)
+            override fun onFailure(call: Call<ArrayList<Question>>?, t: Throwable?) {
 
-        questionsList.add(q3)
+                t?.printStackTrace()
+            }
+
+
+        })
+
         return questionsList
+
+
     }
+
+
 
 }
