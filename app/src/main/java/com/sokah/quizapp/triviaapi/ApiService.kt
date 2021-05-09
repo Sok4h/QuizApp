@@ -6,6 +6,6 @@ import retrofit2.http.GET
 
 interface ApiService {
 
-    @GET("questions?limit=10")
+    @GET("questions?categories=movies,music,general_knowledge&limit=20")
     fun getTrivia() : Call<ArrayList<Question>>
 }
