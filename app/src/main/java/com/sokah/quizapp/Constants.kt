@@ -2,6 +2,9 @@ package com.sokah.quizapp
 
 object Constants {
 
+    const val USER_NAME : String = "username"
+    const val TOTAL_QUESTIONS : String = "total_questions"
+    const val CORRECT_ANSWERS : String = "correctAnswer"
     fun getQuestions():ArrayList<Question>{
 
         val questionsList = ArrayList<Question>()

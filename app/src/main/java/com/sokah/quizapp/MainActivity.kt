@@ -11,6 +11,7 @@ import com.sokah.quizapp.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var name :String
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +32,8 @@ class MainActivity : AppCompatActivity() {
             }else{
             //lleva a la actividad de preguntas
                 var intent = Intent(this,QuizQuestionActivity::class.java)
+                name = binding.inputName.text.toString()
+                intent.putExtra(Constants.USER_NAME,name)
                 startActivity(intent)
                 finish()
             }
