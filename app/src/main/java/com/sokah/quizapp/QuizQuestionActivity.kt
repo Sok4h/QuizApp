@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
@@ -36,7 +37,6 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         binding = ActivityQuizQuestionBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
         getQuestions()
         username = intent.getStringExtra(Constants.USER_NAME).toString()
         binding.btnSubmit.setOnClickListener(this)
@@ -52,12 +52,30 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         checkOption = false;
         answered=false
         defaultOptionTextView()
+
+        mQuestionListAnswers.clear()
+
+        for (wrongAnswer in mQuestionList[mCurrentPosition-1].incorrectAnswers.take(3)) {
+
+            mQuestionListAnswers.add(wrongAnswer);
+        }
+
+        mQuestionListAnswers.add(mQuestionList[mCurrentPosition-1].correctAnswer)
+
+        Log.e("Sin cambiar", mQuestionListAnswers[0] )
+
+        mQuestionListAnswers = mQuestionListAnswers.shuffled() as ArrayList<String>
+
+        Log.e("Cambiado", mQuestionListAnswers[0] )
+
+
+
         var currentQuestion: Question? = mQuestionList?.get(mCurrentPosition - 1)
         binding.tvQuestion.text = currentQuestion?.question
-        binding.optionOne.text = currentQuestion?.correctAnswer
-        binding.optionTwo.text = currentQuestion?.incorrectAnswers!![0]
-        binding.optionThree.text = currentQuestion?.incorrectAnswers!![1]
-        binding.optionFour.text = currentQuestion?.incorrectAnswers!![2]
+        binding.optionOne.text = mQuestionListAnswers[0]
+        binding.optionTwo.text = mQuestionListAnswers[1]
+        binding.optionThree.text = mQuestionListAnswers[2]
+        binding.optionFour.text = mQuestionListAnswers[3]
         //binding.questionImage.setImageResource(currentQuestion!!.image)
         binding.progressBar.progress = mCurrentPosition
         binding.tvProgressBar.text = "$mCurrentPosition / ${mQuestionList?.size}"
@@ -222,21 +240,12 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
                 if (response != null) {
 
                     if (response.isSuccessful) {
-                        mQuestionList = response?.body()!!
+                        mQuestionList = response?.body()
                         setQuestion()
-                        for (wrongAnswer in mQuestionList[0].incorrectAnswers) {
-
-                            mQuestionListAnswers.add(wrongAnswer);
-                        }
-
-                        mQuestionListAnswers.add(mQuestionList[0].correctAnswer)
-
 
                     }
 
-
                 }
-
 
             }
 
