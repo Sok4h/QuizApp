@@ -1,15 +1,12 @@
 package com.sokah.quizapp
 
-class Question(
+class   Question(
 
-    val id:Int,
+    //val id:Int,
     val question:String,
-    val image:Int,
-    val option1:String,
-    val option2:String,
-    val option3:String,
-    val option4:String,
-    val correctAnswer:Int
+    //val image:Int,
+    val incorrectAnswers: ArrayList<String>,
+    val correctAnswer:String
 
 )
 

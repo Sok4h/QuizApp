@@ -5,30 +5,40 @@ import android.graphics.Color
 import android.graphics.Typeface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.sokah.quizapp.databinding.ActivityQuizQuestionBinding
+import com.sokah.quizapp.triviaapi.ApiService
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var binding: ActivityQuizQuestionBinding
-
     private var mCurrentPosition: Int = 1
-    private var correctAnswer :Int = 0
-    private var mQuestionList: ArrayList<Question>? = null
-    private var mSelectedOption: Int = 0
+    private var correctAnswer: Int = 0
+    private lateinit var mQuestionList: ArrayList<Question>
+    private var mQuestionListAnswers: ArrayList<String> = ArrayList()
+    private  var mSelectedOption: String =""
     private var checkOption = false
-    private  var username:String?=null
+    private var answered = false;
+    private var username: String? = null
+    private var retrofit: Retrofit = Retrofit.Builder().baseUrl("https://trivia.willfry.co.uk/api/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityQuizQuestionBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        mQuestionList = Constants.getQuestions()
-        setQuestion()
-        username= intent.getStringExtra(Constants.USER_NAME).toString()
+        getQuestions()
+        username = intent.getStringExtra(Constants.USER_NAME).toString()
         binding.btnSubmit.setOnClickListener(this)
         binding.optionOne.setOnClickListener(this)
         binding.optionTwo.setOnClickListener(this)
@@ -39,15 +49,34 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun setQuestion() {
-        checkOption=false;
+        checkOption = false;
+        answered=false
         defaultOptionTextView()
+
+        mQuestionListAnswers.clear()
+
+        for (wrongAnswer in mQuestionList[mCurrentPosition-1].incorrectAnswers.take(3)) {
+
+            mQuestionListAnswers.add(wrongAnswer);
+        }
+
+        mQuestionListAnswers.add(mQuestionList[mCurrentPosition-1].correctAnswer)
+
+        Log.e("Sin cambiar", mQuestionListAnswers[0] )
+
+        mQuestionListAnswers = mQuestionListAnswers.shuffled() as ArrayList<String>
+
+        Log.e("Cambiado", mQuestionListAnswers[0] )
+
+
+
         var currentQuestion: Question? = mQuestionList?.get(mCurrentPosition - 1)
         binding.tvQuestion.text = currentQuestion?.question
-        binding.optionOne.text = currentQuestion?.option1
-        binding.optionTwo.text = currentQuestion?.option2
-        binding.optionThree.text = currentQuestion?.option3
-        binding.optionFour.text = currentQuestion?.option4
-        binding.questionImage.setImageResource(currentQuestion!!.image)
+        binding.optionOne.text = mQuestionListAnswers[0]
+        binding.optionTwo.text = mQuestionListAnswers[1]
+        binding.optionThree.text = mQuestionListAnswers[2]
+        binding.optionFour.text = mQuestionListAnswers[3]
+        //binding.questionImage.setImageResource(currentQuestion!!.image)
         binding.progressBar.progress = mCurrentPosition
         binding.tvProgressBar.text = "$mCurrentPosition / ${mQuestionList?.size}"
 
@@ -63,11 +92,15 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
         options.add(2, binding.optionThree)
         options.add(3, binding.optionFour)
 
-        for (option in options) {
+        // verifica que no haya seleccionado una opciona antes
+        if(!answered) {
+            for (option in options) {
 
-            option.setTextColor(Color.parseColor("#7A8089"))
-            option.background = ContextCompat.getDrawable(this, R.drawable.default_option_border)
-            option.typeface = Typeface.DEFAULT
+                option.setTextColor(Color.parseColor("#7A8089"))
+                option.background =
+                    ContextCompat.getDrawable(this, R.drawable.default_option_border)
+                option.typeface = Typeface.DEFAULT
+            }
         }
     }
 
@@ -75,67 +108,88 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
 
         when (v?.id) {
 
-            R.id.optionOne -> selectedOptionView(binding.optionOne, 1)
-            R.id.optionTwo -> selectedOptionView(binding.optionTwo, 2)
-            R.id.optionThree -> selectedOptionView(binding.optionThree, 3)
-            R.id.optionFour -> selectedOptionView(binding.optionFour, 4)
+            R.id.optionOne -> selectedOptionView(binding.optionOne, binding.optionOne.text.toString())
+            R.id.optionTwo -> selectedOptionView(binding.optionTwo, binding.optionTwo.text.toString())
+            R.id.optionThree -> selectedOptionView(binding.optionThree, binding.optionThree.text.toString())
+            R.id.optionFour -> selectedOptionView(binding.optionFour, binding.optionFour.text.toString())
             R.id.btnSubmit -> submit()
         }
 
     }
 
     //cambia el estilo a la opcion que es seleccionada
-    private fun selectedOptionView(textView: TextView, selectedOption: Int) {
+    private fun selectedOptionView(textView: TextView, selectedOption: String) {
 
-        if(!checkOption) {
-            defaultOptionTextView()
+            if(!answered) {
 
-            if (mCurrentPosition == mQuestionList!!.size) {
+                defaultOptionTextView()
 
-                binding.btnSubmit.text = "Finish"
-            } else {
-                binding.btnSubmit.text = "Submit"
+                if (mCurrentPosition == mQuestionList!!.size) {
 
+                    binding.btnSubmit.text = "Finish"
+                } else {
+                    binding.btnSubmit.text = "Submit"
+
+                }
+                mSelectedOption = selectedOption
+
+                textView.setTextColor(Color.parseColor("#363A43"))
+                textView.background =
+                    ContextCompat.getDrawable(this, R.drawable.selected_option_border)
+                textView.setTypeface(textView.typeface, Typeface.BOLD)
+                checkOption = true
             }
-            mSelectedOption = selectedOption
-            textView.setTextColor(Color.parseColor("#363A43"))
-            textView.background = ContextCompat.getDrawable(this, R.drawable.selected_option_border)
-            textView.setTypeface(textView.typeface, Typeface.BOLD)
-        }
+
+
     }
 
 
-    private fun answer(answer: Int, background: Int) {
-
+    private fun answer(answer: String, background: Int) {
+        answered =true
         when (answer) {
 
-            1 -> binding.optionOne.background = ContextCompat.getDrawable(this, background)
-            2 -> binding.optionTwo.background = ContextCompat.getDrawable(this, background)
-            3 -> binding.optionThree.background = ContextCompat.getDrawable(this, background)
-            4 -> binding.optionFour.background = ContextCompat.getDrawable(this, background)
+            binding.optionOne.text -> binding.optionOne.background = ContextCompat.getDrawable(this, background)
+            binding.optionTwo.text -> binding.optionTwo.background = ContextCompat.getDrawable(this, background)
+            binding.optionThree.text -> binding.optionThree.background = ContextCompat.getDrawable(this, background)
+            binding.optionFour.text-> binding.optionFour.background = ContextCompat.getDrawable(this, background)
         }
 
     }
 
-    private fun submit (){
+    private fun submit() {
 
-        checkOption=true;
         // primera pregunta
-        if (mSelectedOption == 0) {
+
+        if (mSelectedOption == "") {
+
             //cambia la pregunta
-            mCurrentPosition++
+            if (checkOption) {
+                mCurrentPosition++
+                answered =true
+            }
+            else{
+
+                Toast.makeText(this,"Please choose an answer",Toast.LENGTH_SHORT).show()
+            }
 
             when {
                 //hay preguntas disponibles
                 mCurrentPosition <= mQuestionList!!.size -> {
-                    setQuestion()
+
+                    if (checkOption){
+                        setQuestion()
+                    }
+
+
+
+
                 }
                 else -> {
 
-                     intent  = Intent(this,ResultActivity::class.java)
-                    intent.putExtra(Constants.USER_NAME,username)
-                    intent.putExtra(Constants.CORRECT_ANSWERS,correctAnswer.toString())
-                    intent.putExtra(Constants.TOTAL_QUESTIONS,mQuestionList?.size.toString())
+                    intent = Intent(this, ResultActivity::class.java)
+                    intent.putExtra(Constants.USER_NAME, username)
+                    intent.putExtra(Constants.CORRECT_ANSWERS, correctAnswer.toString())
+                    intent.putExtra(Constants.TOTAL_QUESTIONS, mQuestionList?.size.toString())
                     startActivity(intent)
                     finish()
                 }
@@ -167,8 +221,41 @@ class QuizQuestionActivity : AppCompatActivity(), View.OnClickListener {
                 binding.btnSubmit.text ="Next Question"
             }
 
-            mSelectedOption=0;
+            mSelectedOption="";
 
         }
+    }
+
+    //se comunica con el api para traer preguntas
+    fun getQuestions() {
+
+        var service = retrofit.create(ApiService::class.java)
+
+        service.getTrivia().enqueue(object : Callback<ArrayList<Question>> {
+            override fun onResponse(
+                call: Call<ArrayList<Question>>?,
+                response: Response<ArrayList<Question>>?
+            ) {
+
+                if (response != null) {
+
+                    if (response.isSuccessful) {
+                        mQuestionList = response?.body()
+                        setQuestion()
+
+                    }
+
+                }
+
+            }
+
+            override fun onFailure(call: Call<ArrayList<Question>>?, t: Throwable?) {
+
+                t?.printStackTrace()
+            }
+
+
+        })
+
     }
 }
