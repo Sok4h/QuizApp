@@ -11,8 +11,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 object Constants {
 
     const val USER_NAME : String = "username"
+    const val DIFFICULTY : String = "difficulty"
+    const val CATEGORIES : String = "categories"
     const val TOTAL_QUESTIONS : String = "total_questions"
     const val CORRECT_ANSWERS : String = "correctAnswer"
+    const val BASEURL = "https://trivia.willfry.co.uk/api/"
 
 
 }

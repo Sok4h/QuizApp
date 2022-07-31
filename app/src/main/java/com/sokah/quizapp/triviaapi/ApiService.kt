@@ -1,12 +1,28 @@
 package com.sokah.quizapp.triviaapi
 
-import com.sokah.quizapp.Question
-import retrofit2.Call
-import retrofit2.http.GET
+import android.util.Log
+import com.sokah.quizapp.model.Question
+import com.sokah.quizapp.network.RetrofitHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-interface ApiService {
+class ApiService {
 
-    @GET("https://trivia.willfry.co.uk/api/questions?categories=history,science&limit=10")
-    fun getTrivia() : Call<ArrayList<Question>>
+    private val retrofit = RetrofitHelper.getRetrofit()
+
+    suspend fun getQuestions(
+        categories: String,
+        limit: Int,
+        difficulty: String
+    ): MutableList<Question> {
+
+        return withContext(Dispatchers.IO) {
+            var response =
+                retrofit.create(TriviaApi::class.java).getQuestions(categories, limit, difficulty)
+
+            Log.e("xdd", response.toString() )
+             response.body()!!
+        }
+    }
 
 }

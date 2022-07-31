@@ -1,6 +1,6 @@
-package com.sokah.quizapp
+package com.sokah.quizapp.model
 
-class   Question(
+class  Question(
 
     //val id:Int,
     val question:String,
